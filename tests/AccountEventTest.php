@@ -60,7 +60,7 @@ class AccountEventTest extends TestCase
         $response = $this->get('/balance?account_id=100')
             ->seeStatusCode(200);
 
-        $this->assertEquals('20', $response->response->getContent());
+        $this->assertEquals(20, $response->response->getContent());
     }
 
     private function withdrawFromNonExistingAccount()
