@@ -11,8 +11,10 @@ class AccountEventTest extends TestCase
      */
     public function testResetState()
     {
-        $this->post('/reset')
-            ->assertResponseOk();
+        $response = $this->post('/reset')
+                        ->seeStatusCode(200);
+
+        $this->assertEquals('OK', $response->response->getContent());
     }
 
     /**
