@@ -6,32 +6,30 @@ use Tests\TestCase;
 
 class AccountEventTest extends TestCase
 {
-    public function testScenario()
-    {
-        $this->resetState();
-        $this->getBalanceForNonExistingAccount();
-        $this->createAccountWithInitialBalance();
-        $this->depositIntoExistingAccount();
-        $this->getBalanceForExistingAccount();
-        $this->withdrawFromNonExistingAccount();
-        $this->withdrawFromExistingAccount();
-        $this->transferFromExistingAccount();
-        $this->transferFromNonExistingAccount();
-    }
-
-    private function resetState()
+    /**
+     * @runInSeparateProcess
+     */
+    public function testResetState()
     {
         $this->post('/reset')
             ->assertResponseOk();
     }
 
-    private function getBalanceForNonExistingAccount()
+    /**
+     * @runInSeparateProcess
+     */
+    public function testGetBalanceForNonExistingAccount()
     {
-        $this->get('/balance?account_id=1234')
-            ->seeStatusCode(404);
+        $response = $this->get('/balance?account_id=1234')
+                        ->seeStatusCode(404);
+
+        $this->assertEquals(0, $response->response->getContent());
     }
 
-    private function createAccountWithInitialBalance()
+    /**
+     * @runInSeparateProcess
+     */
+    public function testCreateAccountWithInitialBalance()
     {
         $this->post('/event', ['type' => 'deposit', 'destination' => '100', 'amount' => 10])
             ->seeStatusCode(201)
@@ -43,7 +41,10 @@ class AccountEventTest extends TestCase
             ]);
     }
 
-    private function depositIntoExistingAccount()
+    /**
+     * @runInSeparateProcess
+     */
+    public function testDepositIntoExistingAccount()
     {
         $this->post('/event', ['type' => 'deposit', 'destination' => '100', 'amount' => 10])
             ->seeStatusCode(201)
@@ -55,21 +56,32 @@ class AccountEventTest extends TestCase
             ]);
     }
 
-    private function getBalanceForExistingAccount()
+    /**
+     * @runInSeparateProcess
+     */
+    public function testGetBalanceForExistingAccount()
     {
         $response = $this->get('/balance?account_id=100')
-            ->seeStatusCode(200);
+                        ->seeStatusCode(200);
 
         $this->assertEquals(20, $response->response->getContent());
     }
 
-    private function withdrawFromNonExistingAccount()
+    /**
+     * @runInSeparateProcess
+     */
+    public function testWithdrawFromNonExistingAccount()
     {
-        $this->post('/event', ['type' => 'withdraw', 'origin' => '200', 'amount' => 10])
-            ->seeStatusCode(404);
+        $response = $this->post('/event', ['type' => 'withdraw', 'origin' => '200', 'amount' => 10])
+                        ->seeStatusCode(404);
+
+        $this->assertEquals(0, $response->response->getContent());
     }
 
-    private function withdrawFromExistingAccount()
+    /**
+     * @runInSeparateProcess
+     */
+    public function testWithdrawFromExistingAccount()
     {
         $this->post('/event', ['type' => 'withdraw', 'origin' => '100', 'amount' => 5])
             ->seeStatusCode(201)
@@ -81,7 +93,10 @@ class AccountEventTest extends TestCase
             ]);
     }
 
-    private function transferFromExistingAccount()
+    /**
+     * @runInSeparateProcess
+     */
+    public function testTransferFromExistingAccount()
     {
         $this->post('/event', ['type' => 'transfer', 'origin' => '100', 'amount' => 15, 'destination' => '300'])
             ->seeStatusCode(201)
@@ -97,9 +112,14 @@ class AccountEventTest extends TestCase
             ]);
     }
 
-    private function transferFromNonExistingAccount()
+    /**
+     * @runInSeparateProcess
+     */
+    public function testTransferFromNonExistingAccount()
     {
-        $this->post('/event', ['type' => 'transfer', 'origin' => '200', 'amount' => 15, 'destination' => '300'])
-            ->seeStatusCode(404);
+        $response = $this->post('/event', ['type' => 'transfer', 'origin' => '200', 'amount' => 15, 'destination' => '300'])
+                        ->seeStatusCode(404);
+
+        $this->assertEquals(0, $response->response->getContent());
     }
 }
