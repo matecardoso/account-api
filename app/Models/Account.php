@@ -20,9 +20,18 @@ class Account
         self::$accounts = [];
     }
 
-    public static function find(string $id): ?Account
+    public static function findOrCreate(string $id): ?Account
     {
-        return self::$accounts[$id] ?? null;
+        return self::$accounts[$id] ?? self::create($id);
+    }
+
+    public static function findOrFail(string $id): ?Account
+    {
+        try {
+            return self::$accounts[$id];
+        } catch (\Exception $e) {
+            return response('Account not found', 404);
+        }
     }
 
     public static function create(string $id, int $balance = 0): Account
