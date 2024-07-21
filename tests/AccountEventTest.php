@@ -11,9 +11,8 @@ class AccountEventTest extends TestCase
      */
     public function testResetState()
     {
-        $response = $this->post('/reset')
-                        ->seeStatusCode(200);
-
+        $response = $this->post('/reset');
+        $response->assertResponseStatus(200);
         $this->assertEquals('OK', $response->response->getContent());
     }
 
@@ -22,9 +21,8 @@ class AccountEventTest extends TestCase
      */
     public function testGetBalanceForNonExistingAccount()
     {
-        $response = $this->get('/balance?account_id=1234')
-                        ->seeStatusCode(404);
-
+        $response = $this->get('/balance?account_id=1234');
+        $response->assertResponseStatus(404);
         $this->assertEquals(0, $response->response->getContent());
     }
 
@@ -33,14 +31,11 @@ class AccountEventTest extends TestCase
      */
     public function testCreateAccountWithInitialBalance()
     {
-        $this->post('/event', ['type' => 'deposit', 'destination' => '100', 'amount' => 10])
-            ->seeStatusCode(201)
-            ->seeJsonEquals([
-                'destination' => [
-                    'id' => '100',
-                    'balance' => 10,
-                ],
-            ]);
+        $response = $this->post('/event', ['type' => 'deposit', 'destination' => '100', 'amount' => 10]);
+        $response->assertResponseStatus(201);
+        $response->seeJsonEquals([
+            'destination' => ['id' => '100', 'balance' => 10],
+        ]);
     }
 
     /**
@@ -48,14 +43,12 @@ class AccountEventTest extends TestCase
      */
     public function testDepositIntoExistingAccount()
     {
-        $this->post('/event', ['type' => 'deposit', 'destination' => '100', 'amount' => 10])
-            ->seeStatusCode(201)
-            ->seeJsonEquals([
-                'destination' => [
-                    'id' => '100',
-                    'balance' => 20,
-                ],
-            ]);
+        $this->post('/event', ['type' => 'deposit', 'destination' => '100', 'amount' => 10]);
+        $response = $this->post('/event', ['type' => 'deposit', 'destination' => '100', 'amount' => 10]);
+        $response->assertResponseStatus(201);
+        $response->seeJsonEquals([
+            'destination' => ['id' => '100', 'balance' => 20],
+        ]);
     }
 
     /**
@@ -63,9 +56,9 @@ class AccountEventTest extends TestCase
      */
     public function testGetBalanceForExistingAccount()
     {
-        $response = $this->get('/balance?account_id=100')
-                        ->seeStatusCode(200);
-
+        $this->post('/event', ['type' => 'deposit', 'destination' => '100', 'amount' => 20]);
+        $response = $this->get('/balance?account_id=100');
+        $response->assertResponseStatus(200);
         $this->assertEquals(20, $response->response->getContent());
     }
 
@@ -74,9 +67,8 @@ class AccountEventTest extends TestCase
      */
     public function testWithdrawFromNonExistingAccount()
     {
-        $response = $this->post('/event', ['type' => 'withdraw', 'origin' => '200', 'amount' => 10])
-                        ->seeStatusCode(404);
-
+        $response = $this->post('/event', ['type' => 'withdraw', 'origin' => '200', 'amount' => 10]);
+        $response->assertResponseStatus(404);
         $this->assertEquals(0, $response->response->getContent());
     }
 
@@ -85,14 +77,12 @@ class AccountEventTest extends TestCase
      */
     public function testWithdrawFromExistingAccount()
     {
-        $this->post('/event', ['type' => 'withdraw', 'origin' => '100', 'amount' => 5])
-            ->seeStatusCode(201)
-            ->seeJsonEquals([
-                'origin' => [
-                    'id' => '100',
-                    'balance' => 15,
-                ],
-            ]);
+        $this->post('/event', ['type' => 'deposit', 'destination' => '100', 'amount' => 20]);
+        $response = $this->post('/event', ['type' => 'withdraw', 'origin' => '100', 'amount' => 5]);
+        $response->assertResponseStatus(201);
+        $response->seeJsonEquals([
+            'origin' => ['id' => '100', 'balance' => 15],
+        ]);
     }
 
     /**
@@ -100,18 +90,13 @@ class AccountEventTest extends TestCase
      */
     public function testTransferFromExistingAccount()
     {
-        $this->post('/event', ['type' => 'transfer', 'origin' => '100', 'amount' => 15, 'destination' => '300'])
-            ->seeStatusCode(201)
-            ->seeJsonEquals([
-                'origin' => [
-                    'id' => '100',
-                    'balance' => 0,
-                ],
-                'destination' => [
-                    'id' => '300',
-                    'balance' => 15,
-                ],
-            ]);
+        $this->post('/event', ['type' => 'deposit', 'destination' => '100', 'amount' => 15]);
+        $response = $this->post('/event', ['type' => 'transfer', 'origin' => '100', 'amount' => 15, 'destination' => '300']);
+        $response->assertResponseStatus(201);
+        $response->seeJsonEquals([
+            'origin' => ['id' => '100', 'balance' => 0],
+            'destination' => ['id' => '300', 'balance' => 15],
+        ]);
     }
 
     /**
@@ -119,9 +104,8 @@ class AccountEventTest extends TestCase
      */
     public function testTransferFromNonExistingAccount()
     {
-        $response = $this->post('/event', ['type' => 'transfer', 'origin' => '200', 'amount' => 15, 'destination' => '300'])
-                        ->seeStatusCode(404);
-
+        $response = $this->post('/event', ['type' => 'transfer', 'origin' => '200', 'amount' => 15, 'destination' => '300']);
+        $response->assertResponseStatus(404);
         $this->assertEquals(0, $response->response->getContent());
     }
 }

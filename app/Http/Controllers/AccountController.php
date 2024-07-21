@@ -59,7 +59,12 @@ class AccountController extends BaseController
 
     private function handleDeposit(string $destination, int $amount): JsonResponse
     {
-        $account = $this->accountService->deposit($destination, $amount);
+        try {
+            $account = $this->accountService->deposit($destination, $amount);
+        } catch (\Exception $e) {
+            return response()->json(0, 404);
+        }
+
         return response()->json(['destination' => $account], 201);
     }
 
