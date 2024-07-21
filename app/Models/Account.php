@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\Cache;
+
 class Account
 {
     public string $id;
     public int $balance;
-
-    private static $accounts = [];
 
     public function __construct(string $id, int $balance = 0)
     {
@@ -17,32 +17,37 @@ class Account
 
     public static function reset(): void
     {
-        self::$accounts = [];
+        Cache::flush();
     }
 
     public static function findOrCreate(string $id): Account
     {
-        return self::$accounts[$id] ?? self::create($id);
+        $account = Cache::get($id);
+        if (!$account) {
+            return self::create($id);
+        }
+        return new self($account['id'], $account['balance']);
     }
 
     public static function findOrFail(string $id): Account
     {
-        if (!isset(self::$accounts[$id])) {
+        $account = Cache::get($id);
+        if (!$account) {
             throw new \Exception('Account not found', 404);
         }
-        return self::$accounts[$id];
+        return new self($account['id'], $account['balance']);
     }
 
     public static function create(string $id, int $balance = 0): Account
     {
         $account = new self($id, $balance);
-        self::$accounts[$id] = $account;
+        $account->save();
         return $account;
     }
 
     public function save(): void
     {
-        self::$accounts[$this->id] = $this;
+        Cache::put($this->id, $this->toArray());
     }
 
     public function toArray(): array

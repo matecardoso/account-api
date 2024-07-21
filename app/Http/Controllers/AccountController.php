@@ -16,10 +16,10 @@ class AccountController extends BaseController
         $this->accountService = $accountService;
     }
 
-    public function reset(): JsonResponse
+    public function reset(): String
     {
         $this->accountService->reset();
-        return response()->json(null, 200);
+        return 'OK';
     }
 
     public function balance(Request $request): JsonResponse
@@ -28,7 +28,7 @@ class AccountController extends BaseController
         try {
             $balance = $this->accountService->getBalance($accountId);
         } catch (\Exception $e) {
-            return response()->json($e->getMessage(), 404);
+            return response()->json(0, 404);
         }
 
         return response()->json($balance, 200);
@@ -50,16 +50,21 @@ class AccountController extends BaseController
                 case 'transfer':
                     return $this->handleTransfer($origin, $destination, $amount);
                 default:
-                    return response()->json(['message' => 'Invalid event type'], 400);
+                    return response()->json(0, 400);
             }
         } catch (\Exception $e) {
-            return response('0', 404);
+            return response()->json(0, 404);
         }
     }
 
     private function handleDeposit(string $destination, int $amount): JsonResponse
     {
-        $account = $this->accountService->deposit($destination, $amount);
+        try {
+            $account = $this->accountService->deposit($destination, $amount);
+        } catch (\Exception $e) {
+            return response()->json(0, 404);
+        }
+
         return response()->json(['destination' => $account], 201);
     }
 
@@ -68,7 +73,7 @@ class AccountController extends BaseController
         try {
             $account = $this->accountService->withdraw($origin, $amount);
         } catch (\Exception $e) {
-            return response()->json($e->getMessage(), 404);
+            return response()->json(0, 404);
         }
 
         return response()->json(['origin' => $account], 201);
@@ -79,7 +84,7 @@ class AccountController extends BaseController
         try {
             $result = $this->accountService->transfer($origin, $destination, $amount);
         } catch (\Exception $e) {
-            return response()->json($e->getMessage(), 404);
+            return response()->json(0, 404);
         }
 
         return response()->json($result, 201);

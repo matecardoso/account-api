@@ -1,26 +1,124 @@
-# Lumen PHP Framework
 
-[![Build Status](https://travis-ci.org/laravel/lumen-framework.svg)](https://travis-ci.org/laravel/lumen-framework)
-[![Total Downloads](https://img.shields.io/packagist/dt/laravel/lumen-framework)](https://packagist.org/packages/laravel/lumen-framework)
-[![Latest Stable Version](https://img.shields.io/packagist/v/laravel/lumen-framework)](https://packagist.org/packages/laravel/lumen-framework)
-[![License](https://img.shields.io/packagist/l/laravel/lumen)](https://packagist.org/packages/laravel/lumen-framework)
+# Account API Project
 
-Laravel Lumen is a stunningly fast PHP micro-framework for building web applications with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Lumen attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as routing, database abstraction, queueing, and caching.
+Hello! This project is an API built with Laravel Lumen to manage account operations like deposits, withdrawals, balance inquiries, and transfers. We use a caching system to temporarily store account data.
 
-> **Note:** In the years since releasing Lumen, PHP has made a variety of wonderful performance improvements. For this reason, along with the availability of [Laravel Octane](https://laravel.com/docs/octane), we no longer recommend that you begin new projects with Lumen. Instead, we recommend always beginning new projects with [Laravel](https://laravel.com).
+## Table of Contents
 
-## Official Documentation
+- [Installation](#installation)
+- [Usage](#usage)
+- [API Endpoints](#api-endpoints)
+- [Testing](#testing)
 
-Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).
+## Installation
 
-## Contributing
+1. **Requirements:**
 
-Thank you for considering contributing to Lumen! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+   Ensure you have the following dependencies installed:
+   - PHP >= 8.0
+   - OpenSSL PHP Extension
+   - PDO PHP Extension
+   - Mbstring PHP Extension
+   - Composer
 
-## Security Vulnerabilities
+2. **Clone the Repository:**
 
-If you discover a security vulnerability within Lumen, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+   First, clone the repository to your local machine:
 
-## License
+   ```bash
+   git clone https://github.com/your-username/account-api.git
+   cd account-api
+   ```
 
-The Lumen framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+3. **Install Dependencies:**
+
+   Make sure you have Composer installed, then run:
+
+   ```bash
+   composer install
+   ```
+
+4. **Environment Setup:**
+
+   Copy the example environment file and adjust as needed:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+5. **Create Cache Directory:**
+
+   Ensure the cache directory exists and is writable:
+
+   ```bash
+   mkdir -p storage/framework/cache/data
+   chmod -R 775 storage/framework/cache
+   ```
+
+## Usage
+
+### Starting the Server
+
+You can start the Lumen development server with the following command:
+
+```bash
+php -S localhost:8000 -t public
+```
+
+Your API will be available at `http://localhost:8000`.
+
+## API Endpoints
+
+### POST `/reset`
+
+Resets the API state, clearing all cached data.
+
+**Response:**
+- `200 OK`
+
+### GET `/balance?account_id={id}`
+
+Fetches the balance of the specified account.
+
+**Parameters:**
+- `account_id`: The ID of the account.
+
+**Response:**
+- `200 OK` with the balance if the account exists.
+- `404 Not Found` with `0` if the account does not exist.
+
+### POST `/event`
+
+Handles account events such as deposit, withdraw, and transfer.
+
+**Request Body:**
+- `type`: The type of event (`deposit`, `withdraw`, `transfer`).
+- `destination`: The account ID for deposit and transfer events.
+- `origin`: The account ID for withdraw and transfer events.
+- `amount`: The amount to deposit, withdraw, or transfer.
+
+**Response:**
+- `201 Created` with the account data if successful.
+- `404 Not Found` if the specified account does not exist (for withdraw and transfer events).
+
+## Testing
+
+This project uses PHPUnit for testing. The main test file is `tests/AccountEventTest.php`.
+
+Here are some of the test cases included:
+
+- `testResetState`: Tests the `/reset` endpoint.
+- `testGetBalanceForNonExistingAccount`: Tests the `/balance` endpoint with a non-existing account.
+- `testCreateAccountWithInitialBalance`: Tests creating an account with an initial deposit.
+- `testDepositIntoExistingAccount`: Tests depositing into an existing account.
+- `testGetBalanceForExistingAccount`: Tests retrieving the balance of an existing account.
+- `testWithdrawFromNonExistingAccount`: Tests withdrawing from a non-existing account.
+- `testWithdrawFromExistingAccount`: Tests withdrawing from an existing account.
+- `testTransferFromExistingAccount`: Tests transferring funds between existing accounts.
+- `testTransferFromNonExistingAccount`: Tests transferring from a non-existing account.
+
+To run the tests, execute:
+
+```bash
+vendor/bin/phpunit
+```
